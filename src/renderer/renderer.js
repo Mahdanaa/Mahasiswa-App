@@ -9,8 +9,12 @@ const inputJurusan = document.getElementById('jurusan');
 const inputAngkatan = document.getElementById('angkatan');
 const clearButton = document.getElementById('btn-clear');
 const searchInput = document.getElementById('search-input');
-
 const pesanError = document.getElementById('pesan-error');
+
+function tampilkanError(pesan) {
+  pesanError.innerText = pesan;
+  pesanError.style.display = 'block';
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -23,21 +27,20 @@ function escapeHtml(value) {
 
 async function loadTable(dataCustom = null) {
   const data = dataCustom || (await api.getAll());
-
   tbody.innerHTML = '';
   for (const mahasiswa of data) {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${escapeHtml(mahasiswa.nim)}</td>
-      <td>${escapeHtml(mahasiswa.nama)}</td>
-      <td>${mahasiswa.ipk}</td>
-      <td>${escapeHtml(mahasiswa.jurusan)}</td>
-      <td>${mahasiswa.angkatan}</td>
-      <td>
-        <button class="btn-edit" type="button">Edit</button>
-        <button class="btn-delete" type="button">Hapus</button>
-      </td>
-    `;
+  <td>${escapeHtml(mahasiswa.nim)}</td>
+  <td>${escapeHtml(mahasiswa.nama)}</td>
+  <td>${mahasiswa.ipk}</td>
+  <td>${escapeHtml(mahasiswa.jurusan)}</td>
+  <td>${mahasiswa.angkatan}</td>
+  <td>
+    <button class="btn-edit" type="button">Edit</button>
+    <button class="btn-delete" type="button">Hapus</button>
+  </td>
+`;
     row.querySelector('.btn-edit').addEventListener('click', () => {
       editRow(mahasiswa.id, mahasiswa.nim, mahasiswa.nama, mahasiswa.ipk, mahasiswa.jurusan, mahasiswa.angkatan);
     });
@@ -53,12 +56,25 @@ form.addEventListener('submit', async (event) => {
 
   pesanError.style.display = 'none';
 
+  const ipkValue = Number(inputIpk.value);
+  const angkatanValue = Number(inputAngkatan.value);
+
+  if (ipkValue < 0 || ipkValue > 4) {
+    tampilkanError('Gagal: Nilai IPK harus di antara 0.00 sampai 4.00!');
+    return;
+  }
+
+  if (angkatanValue < 2000 || angkatanValue > 3000) {
+    tampilkanError('Gagal: Tahun angkatan tidak masuk akal!');
+    return;
+  }
+
   const payload = {
-    nim: inputNim.value,
-    nama: inputNama.value,
-    jurusan: inputJurusan.value,
-    ipk: Number(inputIpk.value),
-    angkatan: Number(inputAngkatan.value),
+    nim: inputNim.value.trim(),
+    nama: inputNama.value.trim(),
+    jurusan: inputJurusan.value.trim(),
+    ipk: ipkValue,
+    angkatan: angkatanValue,
   };
 
   try {
@@ -71,9 +87,13 @@ form.addEventListener('submit', async (event) => {
     resetForm();
     await loadTable();
   } catch (error) {
-    pesanError.innerText = 'Gagal menyimpan! NIM ini sudah terdaftar.';
-    pesanError.style.display = 'block';
-    console.error(error);
+    console.error('Error dari database:', error);
+
+    if (error.message.includes('sudah terdaftar') || error.message.includes('UNIQUE')) {
+      tampilkanError('Gagal: NIM ini sudah terdaftar di sistem!');
+    } else {
+      tampilkanError(`Kesalahan Sistem: ${error.message}`);
+    }
   }
 });
 
@@ -84,12 +104,18 @@ function editRow(id, nim, nama, ipk, jurusan, angkatan) {
   inputIpk.value = String(ipk);
   inputJurusan.value = jurusan;
   inputAngkatan.value = String(angkatan);
+
+  pesanError.style.display = 'none';
 }
 
 async function deleteRow(id) {
-  if (confirm('Yakin hapus data ini?')) {
-    await api.delete(id);
-    await loadTable();
+  try {
+    if (confirm('Yakin hapus data ini?')) {
+      await api.delete(id);
+      await loadTable();
+    }
+  } catch (error) {
+    tampilkanError(`Gagal menghapus data: ${error.message}`);
   }
 }
 
@@ -100,11 +126,9 @@ function resetForm() {
 }
 
 clearButton.addEventListener('click', resetForm);
-loadTable();
 
 searchInput.addEventListener('input', async (event) => {
   const keyword = event.target.value;
-
   if (keyword.trim() !== '') {
     const hasilPencarian = await api.search(keyword);
     await loadTable(hasilPencarian);
@@ -112,3 +136,5 @@ searchInput.addEventListener('input', async (event) => {
     await loadTable();
   }
 });
+
+loadTable();
