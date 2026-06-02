@@ -41,4 +41,9 @@ export class MahasiswaRepository extends Repository<Mahasiswa> {
   findByJurusan(jurusan: string): Mahasiswa[] {
     return this.db.prepare(`SELECT * FROM mahasiswa WHERE jurusan = ?`).all(jurusan) as Mahasiswa[];
   }
+  search(keyword: string): Mahasiswa[] {
+    return this.db
+      .prepare(`SELECT * FROM mahasiswa WHERE nim LIKE @keyword OR nama LIKE @keyword`)
+      .all({ keyword: `%${keyword}%` }) as Mahasiswa[];
+  }
 }

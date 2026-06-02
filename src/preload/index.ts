@@ -6,4 +6,5 @@ contextBridge.exposeInMainWorld('api', {
   update: (id: number, data: Partial<Mahasiswa>): Promise<Mahasiswa> =>
     ipcRenderer.invoke('mahasiswa:update', id, data),
   delete: (id: number): Promise<boolean> => ipcRenderer.invoke('mahasiswa:delete', id),
+  search: (keyword: string): Promise<Mahasiswa[]> => ipcRenderer.invoke('mahasiswa:search', keyword),
 });

@@ -35,3 +35,4 @@ ipcMain.handle('mahasiswa:getAll', () => repo.findAll());
 ipcMain.handle('mahasiswa:insert', (_, data) => repo.insert(data));
 ipcMain.handle('mahasiswa:update', (_, id, data) => repo.update(id, data));
 ipcMain.handle('mahasiswa:delete', (_, id) => repo.delete(id));
+ipcMain.handle('mahasiswa:search', (_, keyword) => repo.search(keyword));

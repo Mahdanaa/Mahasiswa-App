@@ -8,6 +8,7 @@ const inputIpk = document.getElementById('ipk');
 const inputJurusan = document.getElementById('jurusan');
 const inputAngkatan = document.getElementById('angkatan');
 const clearButton = document.getElementById('btn-clear');
+const searchInput = document.getElementById('search-input');
 
 const pesanError = document.getElementById('pesan-error');
 
@@ -20,22 +21,23 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;');
 }
 
-async function loadTable() {
-  const data = await api.getAll();
+async function loadTable(dataCustom = null) {
+  const data = dataCustom || (await api.getAll());
+
   tbody.innerHTML = '';
   for (const mahasiswa of data) {
     const row = document.createElement('tr');
     row.innerHTML = `
-  <td>${escapeHtml(mahasiswa.nim)}</td>
-  <td>${escapeHtml(mahasiswa.nama)}</td>
-  <td>${mahasiswa.ipk}</td>
-  <td>${escapeHtml(mahasiswa.jurusan)}</td>
-  <td>${mahasiswa.angkatan}</td>
-  <td>
-    <button class="btn-edit" type="button">Edit</button>
-    <button class="btn-delete" type="button">Hapus</button>
-  </td>
-`;
+      <td>${escapeHtml(mahasiswa.nim)}</td>
+      <td>${escapeHtml(mahasiswa.nama)}</td>
+      <td>${mahasiswa.ipk}</td>
+      <td>${escapeHtml(mahasiswa.jurusan)}</td>
+      <td>${mahasiswa.angkatan}</td>
+      <td>
+        <button class="btn-edit" type="button">Edit</button>
+        <button class="btn-delete" type="button">Hapus</button>
+      </td>
+    `;
     row.querySelector('.btn-edit').addEventListener('click', () => {
       editRow(mahasiswa.id, mahasiswa.nim, mahasiswa.nama, mahasiswa.ipk, mahasiswa.jurusan, mahasiswa.angkatan);
     });
@@ -99,3 +101,14 @@ function resetForm() {
 
 clearButton.addEventListener('click', resetForm);
 loadTable();
+
+searchInput.addEventListener('input', async (event) => {
+  const keyword = event.target.value;
+
+  if (keyword.trim() !== '') {
+    const hasilPencarian = await api.search(keyword);
+    await loadTable(hasilPencarian);
+  } else {
+    await loadTable();
+  }
+});

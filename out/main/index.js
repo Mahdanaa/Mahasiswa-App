@@ -83,6 +83,9 @@ class MahasiswaRepository extends Repository {
   findByJurusan(jurusan) {
     return this.db.prepare(`SELECT * FROM mahasiswa WHERE jurusan = ?`).all(jurusan);
   }
+  search(keyword) {
+    return this.db.prepare(`SELECT * FROM mahasiswa WHERE nim LIKE @keyword OR nama LIKE @keyword`).all({ keyword: `%${keyword}%` });
+  }
 }
 let repo;
 function createWindow() {
@@ -117,3 +120,4 @@ electron.ipcMain.handle("mahasiswa:getAll", () => repo.findAll());
 electron.ipcMain.handle("mahasiswa:insert", (_, data) => repo.insert(data));
 electron.ipcMain.handle("mahasiswa:update", (_, id, data) => repo.update(id, data));
 electron.ipcMain.handle("mahasiswa:delete", (_, id) => repo.delete(id));
+electron.ipcMain.handle("mahasiswa:search", (_, keyword) => repo.search(keyword));
