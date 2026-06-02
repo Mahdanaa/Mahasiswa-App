@@ -85,13 +85,25 @@ mahasiswa-app/
 
 ```sql
 CREATE TABLE mahasiswa (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  nim TEXT NOT NULL UNIQUE,           -- Nomor Induk Mahasiswa
-  nama TEXT NOT NULL,                 -- Nama mahasiswa
-  jurusan TEXT NOT NULL,              -- Program studi/jurusan
-  angkatan INTEGER NOT NULL           -- Tahun masuk
+  id INTEGER PRIMARY KEY AUTOINCREMENT,    -- ID unik (auto increment)
+  nim TEXT NOT NULL UNIQUE,                -- Nomor Induk Mahasiswa (unique)
+  nama TEXT NOT NULL,                      -- Nama lengkap mahasiswa
+  jurusan TEXT NOT NULL,                   -- Program studi/jurusan
+  angkatan INTEGER NOT NULL,               -- Tahun masuk (contoh: 2023)
+  ipk REAL NOT NULL DEFAULT 0              -- Index Prestasi Kumulatif (0.0 - 4.0)
 )
 ```
+
+### Penjelasan Kolom
+
+| Kolom      | Tipe    | Constraint        | Keterangan                                 |
+| ---------- | ------- | ----------------- | ------------------------------------------ |
+| `id`       | INTEGER | PRIMARY KEY, AUTO | ID unik, auto-increment                    |
+| `nim`      | TEXT    | NOT NULL, UNIQUE  | Nomor Induk Mahasiswa (harus unique)       |
+| `nama`     | TEXT    | NOT NULL          | Nama lengkap mahasiswa                     |
+| `jurusan`  | TEXT    | NOT NULL          | Program studi (contoh: Teknik Informatika) |
+| `angkatan` | INTEGER | NOT NULL          | Tahun masuk (contoh: 2023)                 |
+| `ipk`      | REAL    | NOT NULL, DEFAULT | IPK (0.0 - 4.0, default: 0)                |
 
 ## � Prasyarat
 
@@ -232,10 +244,24 @@ DATABASE_PATH=/path/to/custom/location
 export interface Mahasiswa {
   id?: number; // Auto-generated oleh database
   nim: string; // Nomor Induk Mahasiswa (unique)
-  nama: string; // Nama lengkap
-  jurusan: string; // Program studi
+  nama: string; // Nama lengkap mahasiswa
+  jurusan: string; // Program studi/jurusan
   angkatan: number; // Tahun masuk (contoh: 2023)
+  ipk: number; // Index Prestasi Kumulatif (0.0 - 4.0)
 }
+```
+
+### Contoh Data
+
+```typescript
+const mahasiswa: Mahasiswa = {
+  id: 1,
+  nim: '2023001',
+  nama: 'Budi Santoso',
+  jurusan: 'Teknik Informatika',
+  angkatan: 2023,
+  ipk: 3.85,
+};
 ```
 
 ## 🔌 IPC Communication (Main ↔ Renderer)
@@ -296,6 +322,7 @@ try {
     nama: 'Budi Santoso',
     jurusan: 'Teknik Informatika',
     angkatan: 2023,
+    ipk: 3.85,
   });
   console.log('Data berhasil ditambahkan:', newMahasiswa);
 } catch (error) {
@@ -311,6 +338,7 @@ try {
   const updated = await window.electron.ipcRenderer.invoke('mahasiswa:update', 1, {
     nama: 'Budi Santoso Updated',
     jurusan: 'Teknik Informatika Terapan',
+    ipk: 3.92,
   });
   console.log('Data berhasil diupdate:', updated);
 } catch (error) {
@@ -634,8 +662,9 @@ npm run build:linux
 
 - [ ] **Data Validation**
   - [ ] NIM harus unique
-  - [ ] Semua field required fields tidak boleh kosong
+  - [ ] Semua required fields tidak boleh kosong
   - [ ] Angkatan harus valid (number)
+  - [ ] IPK harus valid range (0.0 - 4.0)
 
 - [ ] **Database**
   - [ ] Database file created correctly
@@ -815,6 +844,7 @@ Jika aplikasi lambat:
 - ❌ Belum ada export/import data functionality
 - ❌ Belum ada backup automation
 - ❌ Belum ada search/filter feature
+- ❌ Belum ada validasi IPK range (0.0 - 4.0)
 - ❌ UI belum responsive untuk mobile (desktop only)
 
 ### Workarounds
