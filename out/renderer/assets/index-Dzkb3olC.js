@@ -8,6 +8,7 @@ const inputIpk = document.getElementById("ipk");
 const inputJurusan = document.getElementById("jurusan");
 const inputAngkatan = document.getElementById("angkatan");
 const clearButton = document.getElementById("btn-clear");
+const pesanError = document.getElementById("pesan-error");
 function escapeHtml(value) {
   return String(value).replaceAll("&", "&").replaceAll("<", "<").replaceAll(">", ">").replaceAll('"', '"').replaceAll("'", "&#39;");
 }
@@ -38,20 +39,27 @@ async function loadTable() {
 }
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  pesanError.style.display = "none";
   const payload = {
     nim: inputNim.value,
     nama: inputNama.value,
-    ipk: Number(inputIpk.value),
     jurusan: inputJurusan.value,
+    ipk: Number(inputIpk.value),
     angkatan: Number(inputAngkatan.value)
   };
-  if (editId.value) {
-    await api.update(Number(editId.value), payload);
-  } else {
-    await api.insert(payload);
+  try {
+    if (editId.value) {
+      await api.update(Number(editId.value), payload);
+    } else {
+      await api.insert(payload);
+    }
+    resetForm();
+    await loadTable();
+  } catch (error) {
+    pesanError.innerText = "Gagal menyimpan! NIM ini sudah terdaftar.";
+    pesanError.style.display = "block";
+    console.error(error);
   }
-  resetForm();
-  await loadTable();
 });
 function editRow(id, nim, nama, ipk, jurusan, angkatan) {
   editId.value = String(id);
@@ -70,6 +78,7 @@ async function deleteRow(id) {
 function resetForm() {
   form.reset();
   editId.value = "";
+  pesanError.style.display = "none";
 }
 clearButton.addEventListener("click", resetForm);
 loadTable();

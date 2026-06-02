@@ -53,10 +53,14 @@ class MahasiswaRepository extends Repository {
     super(db, "mahasiswa");
   }
   insert(data) {
+    const existing = this.findByNim(data.nim);
+    if (existing) {
+      throw new Error(`NIM ${data.nim} sudah terdaftar! Silakan gunakan NIM lain.`);
+    }
     const stmt = this.db.prepare(`
-    INSERT INTO mahasiswa (nim, nama, jurusan, angkatan, ipk)
-    VALUES (@nim, @nama, @jurusan, @angkatan, @ipk)
-  `);
+      INSERT INTO mahasiswa (nim, nama, jurusan,ipk, angkatan)
+      VALUES (@nim, @nama, @jurusan, @ipk, @angkatan)
+    `);
     const result = stmt.run(data);
     return { id: Number(result.lastInsertRowid), ...data };
   }

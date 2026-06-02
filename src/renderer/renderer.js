@@ -8,6 +8,9 @@ const inputIpk = document.getElementById('ipk');
 const inputJurusan = document.getElementById('jurusan');
 const inputAngkatan = document.getElementById('angkatan');
 const clearButton = document.getElementById('btn-clear');
+
+const pesanError = document.getElementById('pesan-error');
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll('&', '&')
@@ -16,6 +19,7 @@ function escapeHtml(value) {
     .replaceAll('"', '"')
     .replaceAll("'", '&#39;');
 }
+
 async function loadTable() {
   const data = await api.getAll();
   tbody.innerHTML = '';
@@ -41,23 +45,36 @@ async function loadTable() {
     tbody.appendChild(row);
   }
 }
+
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
+
+  pesanError.style.display = 'none';
+
   const payload = {
     nim: inputNim.value,
     nama: inputNama.value,
-    ipk: Number(inputIpk.value),
     jurusan: inputJurusan.value,
+    ipk: Number(inputIpk.value),
     angkatan: Number(inputAngkatan.value),
   };
-  if (editId.value) {
-    await api.update(Number(editId.value), payload);
-  } else {
-    await api.insert(payload);
+
+  try {
+    if (editId.value) {
+      await api.update(Number(editId.value), payload);
+    } else {
+      await api.insert(payload);
+    }
+
+    resetForm();
+    await loadTable();
+  } catch (error) {
+    pesanError.innerText = 'Gagal menyimpan! NIM ini sudah terdaftar.';
+    pesanError.style.display = 'block';
+    console.error(error);
   }
-  resetForm();
-  await loadTable();
 });
+
 function editRow(id, nim, nama, ipk, jurusan, angkatan) {
   editId.value = String(id);
   inputNim.value = nim;
@@ -66,15 +83,19 @@ function editRow(id, nim, nama, ipk, jurusan, angkatan) {
   inputJurusan.value = jurusan;
   inputAngkatan.value = String(angkatan);
 }
+
 async function deleteRow(id) {
   if (confirm('Yakin hapus data ini?')) {
     await api.delete(id);
     await loadTable();
   }
 }
+
 function resetForm() {
   form.reset();
   editId.value = '';
+  pesanError.style.display = 'none';
 }
+
 clearButton.addEventListener('click', resetForm);
 loadTable();
