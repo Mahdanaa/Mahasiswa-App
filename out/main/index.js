@@ -24,6 +24,14 @@ class Database {
         ipk REAL NOT NULL DEFAULT 0
       )
     `);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS dosen (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nidn TEXT NOT NULL UNIQUE,
+        nama TEXT NOT NULL,
+        matkul TEXT NOT NULL
+      )
+    `);
     try {
       db.exec(`ALTER TABLE mahasiswa ADD COLUMN ipk REAL NOT NULL DEFAULT 0`);
     } catch {
@@ -87,7 +95,34 @@ class MahasiswaRepository extends Repository {
     return this.db.prepare(`SELECT * FROM mahasiswa WHERE nim LIKE @keyword OR nama LIKE @keyword`).all({ keyword: `%${keyword}%` });
   }
 }
+class DosenRepository extends Repository {
+  constructor(db) {
+    super(db, "dosen");
+  }
+  insert(data) {
+    const stmt = this.db.prepare(`
+      INSERT INTO dosen (nidn, nama, matkul)
+      VALUES (@nidn, @nama, @matkul)
+    `);
+    const result = stmt.run(data);
+    return { id: Number(result.lastInsertRowid), ...data };
+  }
+  update(id, data) {
+    const existing = this.findById(id);
+    if (!existing) return void 0;
+    const updated = { ...existing, ...data };
+    this.db.prepare(
+      `
+      UPDATE dosen
+      SET nidn = @nidn, nama = @nama, matkul = @matkul
+      WHERE id = @id
+    `
+    ).run(updated);
+    return updated;
+  }
+}
 let repo;
+let repoDosen;
 function createWindow() {
   const win = new electron.BrowserWindow({
     width: 900,
@@ -106,6 +141,7 @@ function createWindow() {
 electron.app.whenReady().then(() => {
   const db = Database.getInstance();
   repo = new MahasiswaRepository(db);
+  repoDosen = new DosenRepository(db);
   createWindow();
   electron.app.on("activate", () => {
     if (electron.BrowserWindow.getAllWindows().length === 0) {
@@ -121,3 +157,7 @@ electron.ipcMain.handle("mahasiswa:insert", (_, data) => repo.insert(data));
 electron.ipcMain.handle("mahasiswa:update", (_, id, data) => repo.update(id, data));
 electron.ipcMain.handle("mahasiswa:delete", (_, id) => repo.delete(id));
 electron.ipcMain.handle("mahasiswa:search", (_, keyword) => repo.search(keyword));
+electron.ipcMain.handle("dosen:getAll", () => repoDosen.findAll());
+electron.ipcMain.handle("dosen:insert", (_, data) => repoDosen.insert(data));
+electron.ipcMain.handle("dosen:update", (_, id, data) => repoDosen.update(id, data));
+electron.ipcMain.handle("dosen:delete", (_, id) => repoDosen.delete(id));

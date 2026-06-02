@@ -26,6 +26,14 @@ export class Database {
         ipk REAL NOT NULL DEFAULT 0
       )
     `);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS dosen (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nidn TEXT NOT NULL UNIQUE,
+        nama TEXT NOT NULL,
+        matkul TEXT NOT NULL
+      )
+    `);
 
     try {
       db.exec(`ALTER TABLE mahasiswa ADD COLUMN ipk REAL NOT NULL DEFAULT 0`);
