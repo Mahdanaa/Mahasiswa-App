@@ -7,9 +7,9 @@ export class MahasiswaRepository extends Repository<Mahasiswa> {
   }
   insert(data: Omit<Mahasiswa, 'id'>): Mahasiswa {
     const stmt = this.db.prepare(`
-INSERT INTO mahasiswa (nim, nama, jurusan, angkatan)
-VALUES (@nim, @nama, @jurusan, @angkatan)
-`);
+    INSERT INTO mahasiswa (nim, nama, jurusan, angkatan, ipk)
+    VALUES (@nim, @nama, @jurusan, @angkatan, @ipk)
+  `);
     const result = stmt.run(data);
     return { id: Number(result.lastInsertRowid), ...data };
   }
@@ -20,10 +20,10 @@ VALUES (@nim, @nama, @jurusan, @angkatan)
     this.db
       .prepare(
         `
-UPDATE mahasiswa
-SET nim = @nim, nama = @nama, jurusan = @jurusan, angkatan = @angkatan
-WHERE id = @id
-`
+    UPDATE mahasiswa
+    SET nim = @nim, nama = @nama, jurusan = @jurusan, angkatan = @angkatan, ipk = @ipk
+    WHERE id = @id
+  `
       )
       .run(updated);
     return updated;

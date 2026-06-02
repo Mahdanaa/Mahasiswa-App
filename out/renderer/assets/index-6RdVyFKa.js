@@ -4,6 +4,7 @@ const tbody = document.getElementById("table-body");
 const editId = document.getElementById("edit-id");
 const inputNim = document.getElementById("nim");
 const inputNama = document.getElementById("nama");
+const inputIpk = document.getElementById("ipk");
 const inputJurusan = document.getElementById("jurusan");
 const inputAngkatan = document.getElementById("angkatan");
 const clearButton = document.getElementById("btn-clear");
@@ -16,17 +17,18 @@ async function loadTable() {
   for (const mahasiswa of data) {
     const row = document.createElement("tr");
     row.innerHTML = `
-<td>${escapeHtml(mahasiswa.nim)}</td>
-<td>${escapeHtml(mahasiswa.nama)}</td>
-<td>${escapeHtml(mahasiswa.jurusan)}</td>
-<td>${mahasiswa.angkatan}</td>
-<td>
-<button class="btn-edit" type="button">Edit</button>
-<button class="btn-delete" type="button">Hapus</button>
-</td>
+  <td>${escapeHtml(mahasiswa.nim)}</td>
+  <td>${escapeHtml(mahasiswa.nama)}</td>
+  <td>${mahasiswa.ipk}</td>
+  <td>${escapeHtml(mahasiswa.jurusan)}</td>
+  <td>${mahasiswa.angkatan}</td>
+  <td>
+    <button class="btn-edit" type="button">Edit</button>
+    <button class="btn-delete" type="button">Hapus</button>
+  </td>
 `;
     row.querySelector(".btn-edit").addEventListener("click", () => {
-      editRow(mahasiswa.id, mahasiswa.nim, mahasiswa.nama, mahasiswa.jurusan, mahasiswa.angkatan);
+      editRow(mahasiswa.id, mahasiswa.nim, mahasiswa.nama, mahasiswa.ipk, mahasiswa.jurusan, mahasiswa.angkatan);
     });
     row.querySelector(".btn-delete").addEventListener("click", () => {
       deleteRow(mahasiswa.id);
@@ -39,6 +41,7 @@ form.addEventListener("submit", async (event) => {
   const payload = {
     nim: inputNim.value,
     nama: inputNama.value,
+    ipk: Number(inputIpk.value),
     jurusan: inputJurusan.value,
     angkatan: Number(inputAngkatan.value)
   };
@@ -50,10 +53,11 @@ form.addEventListener("submit", async (event) => {
   resetForm();
   await loadTable();
 });
-function editRow(id, nim, nama, jurusan, angkatan) {
+function editRow(id, nim, nama, ipk, jurusan, angkatan) {
   editId.value = String(id);
   inputNim.value = nim;
   inputNama.value = nama;
+  inputIpk.value = String(ipk);
   inputJurusan.value = jurusan;
   inputAngkatan.value = String(angkatan);
 }

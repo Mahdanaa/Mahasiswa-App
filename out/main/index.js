@@ -15,14 +15,19 @@ class Database {
   }
   static migrate(db) {
     db.exec(`
-CREATE TABLE IF NOT EXISTS mahasiswa (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-nim TEXT NOT NULL UNIQUE,
-nama TEXT NOT NULL,
-jurusan TEXT NOT NULL,
-angkatan INTEGER NOT NULL
-)
-`);
+      CREATE TABLE IF NOT EXISTS mahasiswa (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nim TEXT NOT NULL UNIQUE,
+        nama TEXT NOT NULL,
+        jurusan TEXT NOT NULL,
+        angkatan INTEGER NOT NULL,
+        ipk REAL NOT NULL DEFAULT 0
+      )
+    `);
+    try {
+      db.exec(`ALTER TABLE mahasiswa ADD COLUMN ipk REAL NOT NULL DEFAULT 0`);
+    } catch {
+    }
   }
 }
 class Repository {
@@ -49,9 +54,9 @@ class MahasiswaRepository extends Repository {
   }
   insert(data) {
     const stmt = this.db.prepare(`
-INSERT INTO mahasiswa (nim, nama, jurusan, angkatan)
-VALUES (@nim, @nama, @jurusan, @angkatan)
-`);
+    INSERT INTO mahasiswa (nim, nama, jurusan, angkatan, ipk)
+    VALUES (@nim, @nama, @jurusan, @angkatan, @ipk)
+  `);
     const result = stmt.run(data);
     return { id: Number(result.lastInsertRowid), ...data };
   }
@@ -61,10 +66,10 @@ VALUES (@nim, @nama, @jurusan, @angkatan)
     const updated = { ...existing, ...data };
     this.db.prepare(
       `
-UPDATE mahasiswa
-SET nim = @nim, nama = @nama, jurusan = @jurusan, angkatan = @angkatan
-WHERE id = @id
-`
+    UPDATE mahasiswa
+    SET nim = @nim, nama = @nama, jurusan = @jurusan, angkatan = @angkatan, ipk = @ipk
+    WHERE id = @id
+  `
     ).run(updated);
     return updated;
   }
